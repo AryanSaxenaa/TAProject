@@ -5,6 +5,17 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 
 public class register {
+/*************  ✨ Codeium Command ⭐  *************/
+/**
+ * Main method for automating the registration process on a web application.
+ * It initializes the Chrome WebDriver, navigates to the registration page,
+ * fills out the registration form with test data, submits the form, and handles
+ * any alert popups indicating the registration status. Finally, it closes the browser.
+ *
+ * @param args command-line arguments (not used in this method)
+ */
+
+/******  e8d00f03-45c1-4257-9108-255bf5dd13cd  *******/
     public static void main(String[] args) {
         // Set ChromeDriver path (Update according to your system)
         System.setProperty("webdriver.chrome.driver", "C:\\chromedriver.exe");

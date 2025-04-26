@@ -5,8 +5,22 @@ import User from "../models/user.js";
 export const createTask = async (req, res) => {
   try {
     const { userId } = req.user;
-
     const { title, team, stage, date, priority, assets } = req.body;
+
+    const taskDate = new Date(date);
+    const today = new Date();
+
+    // ✅ Reset time to only compare date part
+    taskDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    // ❌ Reject if task date is in the past
+    if (taskDate < today) {
+      return res.status(400).json({
+        status: false,
+        message: "Task date must be today or a future date.",
+      });
+    }
 
     let text = "New task has been assigned to you";
     if (team?.length > 1) {
@@ -15,9 +29,7 @@ export const createTask = async (req, res) => {
 
     text =
       text +
-      ` The task priority is set a ${priority} priority, so check and act accordingly. The task date is ${new Date(
-        date
-      ).toDateString()}. Thank you!!!`;
+      ` The task priority is set a ${priority} priority, so check and act accordingly. The task date is ${taskDate.toDateString()}. Thank you!!!`;
 
     const activity = {
       type: "assigned",
@@ -29,7 +41,7 @@ export const createTask = async (req, res) => {
       title,
       team,
       stage: stage.toLowerCase(),
-      date,
+      date: taskDate,
       priority: priority.toLowerCase(),
       assets,
       activities: activity,
@@ -41,14 +53,17 @@ export const createTask = async (req, res) => {
       task: task._id,
     });
 
-    res
-      .status(200)
-      .json({ status: true, task, message: "Task created successfully." });
+    res.status(200).json({
+      status: true,
+      task,
+      message: "Task created successfully.",
+    });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ status: false, message: error.message });
   }
 };
+
 
 export const duplicateTask = async (req, res) => {
   try {
@@ -99,11 +114,24 @@ export const duplicateTask = async (req, res) => {
 export const postTaskActivity = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userId } = req.user;
+    const { userId, isAdmin } = req.user;
     const { type, activity } = req.body;
 
-    const task = await Task.findById(id);
+    const task = await Task.findById(id).populate("team", "_id"); // 👈 Important populate
 
+    // ✅ Check if the user is assigned to the task
+    const isAssigned = task.team.some(
+      (member) => member._id.toString() === userId
+    );
+
+    if (!isAdmin && !isAssigned) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not allowed to update this task activity.", 
+      });
+    }
+
+    // ✅ Allow assigned users or admins
     const data = {
       type,
       activity,
@@ -111,17 +139,18 @@ export const postTaskActivity = async (req, res) => {
     };
 
     task.activities.push(data);
-
     await task.save();
 
-    res
-      .status(200)
-      .json({ status: true, message: "Activity posted successfully." });
+    res.status(200).json({
+      status: true,
+      message: "Activity posted successfully.",
+    });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ status: false, message: error.message });
   }
 };
+
 
 export const dashboardStatistics = async (req, res) => {
   try {
@@ -229,6 +258,7 @@ export const getTasks = async (req, res) => {
 export const getTask = async (req, res) => {
   try {
     const { id } = req.params;
+    const { userId, isAdmin } = req.user;
 
     const task = await Task.findById(id)
       .populate({
@@ -239,6 +269,16 @@ export const getTask = async (req, res) => {
         path: "activities.by",
         select: "name",
       });
+
+    // Check if the user is admin or assigned to the task
+    const isAssigned = task.team.some((member) => member._id.toString() === userId);
+
+    if (!isAdmin && !isAssigned) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not authorized to view this task.",
+      });
+    }
 
     res.status(200).json({
       status: true,
@@ -281,8 +321,20 @@ export const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, date, team, stage, priority, assets } = req.body;
+    const { userId, isAdmin } = req.user;
 
     const task = await Task.findById(id);
+
+    // Check if user is admin or assigned to the task
+    const isAssigned = task.team.some(member => member.toString() === userId);
+
+    if (!isAdmin && !isAssigned) {
+      return res.status(403).json({
+        status: false,
+        message: "You are not authorized to update this task.",
+      });
+    }
+    
 
     task.title = title;
     task.date = date;
@@ -293,14 +345,16 @@ export const updateTask = async (req, res) => {
 
     await task.save();
 
-    res
-      .status(200)
-      .json({ status: true, message: "Task duplicated successfully." });
+    res.status(200).json({
+      status: true,
+      message: "Task updated successfully.",
+    });
   } catch (error) {
     console.log(error);
     return res.status(400).json({ status: false, message: error.message });
   }
 };
+
 
 export const trashTask = async (req, res) => {
   try {
