@@ -105,34 +105,36 @@ const Register = () => {
                                 className="w-full p-2 border rounded-full mb-3"
                             />
 
-                            <input
-                                type="text"
-                                name="role"
-                                placeholder="Role (optional)"
-                                value={formData.role}
-                                onChange={handleChange}
-                                className="w-full p-2 border rounded-full mb-3"
-                            />
+                            {/* Role Dropdown */}
+                          
 
-                            <input
-                                type="text"
-                                name="title"
-                                placeholder="Title (optional)"
-                                value={formData.title}
-                                onChange={handleChange}
-                                className="w-full p-2 border rounded-full mb-3"
-                            />
+<select
+    name="title"
+    value={formData.title}
+    onChange={handleChange}
+    required
+    className="w-full p-2 border rounded-full mb-3"
+>
+    <option value="" disabled>Select Title</option>
+    <option value="Junior Engineer">Junior Engineer</option>
+    <option value="Senior Engineer">Senior Engineer</option>
+    <option value="Lead Engineer">Lead Engineer</option>
+</select>
+<select
+    name="role"
+    value={formData.role}
+    onChange={handleChange}
+    required
+    className="w-full p-2 border rounded-full mb-3"
+>
+    <option value="" disabled>Select Role</option>
+    <option value="developer">Developer</option>
+    <option value="designer">Designer</option>
+    <option value="manager">Manager</option>
+    <option value="tester">Tester</option>
+</select>
 
-                            <div className="mb-3">
-                                <input
-                                    type="checkbox"
-                                    name="isAdmin"
-                                    checked={formData.isAdmin}
-                                    onChange={handleChange}
-                                    className="mr-2"
-                                />
-                                <label>Admin Account</label>
-                            </div>
+                           
 
                             <button
                                 type="submit"

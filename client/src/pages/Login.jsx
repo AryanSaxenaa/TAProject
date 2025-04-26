@@ -116,6 +116,17 @@ const Login = () => {
                                 />
                             )}
                         </div>
+                        <div className="flex justify-center items-center gap-2">
+                            <p className="text-sm text-gray-500">
+                                Don't have an account?
+                            </p>
+                            <Button
+                                type="button"
+                                label="Create Account"
+                                className="w-full h-10 bg-blue-700 text-white rounded-full"
+                                onClick={() => navigate("/register")}
+                            />
+                        </div>
                     </form>
                 </div>
             </div>

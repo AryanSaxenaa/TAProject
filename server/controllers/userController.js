@@ -5,16 +5,20 @@ import Notice from "../models/notification.js"
 
 export const registerUser = async (req, res) => {
     try {
-        const { name, email, password, isAdmin, role, title } = req.body
+        const { name, email, password, role, title } = req.body;
 
-        const userExist = await User.findOne({ email })
+        const userExist = await User.findOne({ email });
 
         if (userExist) {
             return res.status(400).json({
                 status: false,
                 message: "User already exists",
-            })
+            });
         }
+
+        // Correct case-insensitive check
+        const normalizedTitle = title.trim().toLowerCase();
+        const isAdmin = normalizedTitle === "senior engineer";
 
         const user = await User.create({
             name,
@@ -23,24 +27,27 @@ export const registerUser = async (req, res) => {
             isAdmin,
             role,
             title,
-        })
+        });
 
         if (user) {
-            isAdmin ? createJWT(res, user._id) : null
+            if (isAdmin) {
+                createJWT(res, user._id);
+            }
 
-            user.password = undefined
+            user.password = undefined;
 
-            res.status(201).json(user)
+            return res.status(201).json(user);
         } else {
             return res
                 .status(400)
-                .json({ status: false, message: "Invalid user data" })
+                .json({ status: false, message: "Invalid user data" });
         }
     } catch (error) {
-        console.log(error)
-        return res.status(400).json({ status: false, message: error.message })
+        console.log(error);
+        return res.status(400).json({ status: false, message: error.message });
     }
-}
+};
+
 
 export const loginUser = async (req, res) => {
     try {
